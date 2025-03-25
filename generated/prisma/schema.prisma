@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// npx prisma migrate dev --name changedName  ---> to migrate into db
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Inistutations Table
+model Inistutations {
+  eiin              String           @id @default(uuid()) //used as id for the institution (for coaching center their eiin is just an id)
+  name_eng          String
+  name_bng          String
+  founding_date     DateTime?
+  address           String?
+  phone_number      String
+  email             String
+  proof_of_document String?
+  logo              String?
+  type              Instutation_type @default(school)
+  isVarified        Boolean          @default(false)
+  password          String
+
+  // Relations
+  teachers Teachers[]
+  students Students[]
+}
+
+enum Instutation_type {
+  school
+  college
+  school_college
+  madrasha
+  coaching_center
+  primary_school
+  others
+}
+
+// Teacher Table
+model Teachers {
+  id              String   @id @default(uuid())
+  instutaion_id   String
+  name_eng        String
+  name_bng        String
+  teacher_id      String
+  teacher_enitial String
+  image           String
+  email           String
+  phone_number    String
+  password        String
+  religion        Religion @default(islam)
+  gender          Gender   @default(male)
+  date_of_birth   DateTime
+  address         String?
+  signeture       String?
+  position        String?
+  blod_group      String?
+  role            In_Role  @default(teacher)
+
+  // Realationship
+  instutaion Inistutations @relation(fields: [instutaion_id], references: [eiin])
+}
+
+// Student Table
+model Students {
+  id            String        @id @default(uuid())
+  instutaion_id String
+  class_role    String
+  name_eng      String
+  name_bng      String
+  student_id    String
+  image         String
+  email         String
+  phone_number  String
+  password      String
+  religion      Religion      @default(islam)
+  gender        Gender        @default(male)
+  date_of_birth DateTime
+  address       String?
+  signeture     String?
+  blod_group    String?
+  role          In_Role       @default(student)
+  status        Studen_Status @default(current)
+
+  // Realationship
+  instutaion Inistutations @relation(fields: [instutaion_id], references: [eiin])
+}
+
+enum Religion {
+  islam
+  hindu
+  buddhist
+  christian
+  others
+}
+
+enum Gender {
+  male
+  female
+  others
+}
+
+enum In_Role {
+  student
+  teacher
+}
+
+enum Studen_Status {
+  current
+  alumni
+}
