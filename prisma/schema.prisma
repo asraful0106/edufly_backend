@@ -4,11 +4,10 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
-// npx prisma migrate dev --name changedName  ---> to migrate into db
+// npx prisma migrate dev --name init
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -16,27 +15,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Inistutations Table
-model Inistutations {
-  eiin              String           @id @default(uuid()) //used as id for the institution (for coaching center their eiin is just an id)
-  name_eng          String
-  name_bng          String
-  founding_date     DateTime?
-  address           String?
-  phone_number      String
-  email             String
-  proof_of_document String?
-  logo              String?
-  type              Instutation_type @default(school)
-  isVarified        Boolean          @default(false)
-  password          String
+// Institutions Table
+model Institutions {
+  eiin           String          @id @default(uuid()) // Unique ID for the institution
+  name_eng       String
+  name_bng       String
+  founding_date  DateTime?
+  address        String?
+  phone_number   String
+  email          String          @unique
+  document_proof String? // document for proof of institution
+  logo           String? // URL or file reference
+  type           InstitutionType @default(school)
+  isVerified     Boolean         @default(false) // For verification
+  password       String
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @updatedAt
 
   // Relations
-  teachers Teachers[]
-  students Students[]
+  teachers      Teachers[]
+  students      Students[]
+  posts         Posts[]
+  notifications Notifications[]
+  courses       Courses[]
+  batches       Batches[]
 }
 
-enum Instutation_type {
+enum InstitutionType {
   school
   college
   school_college
@@ -46,56 +51,170 @@ enum Instutation_type {
   others
 }
 
-// Teacher Table
+// Notifications Table
+model Notifications {
+  id             String   @id @default(uuid())
+  institution_id String
+  title          String
+  message        String
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  // Relations
+  notificationContent NotificationContent[]
+  institution         Institutions          @relation(fields: [institution_id], references: [eiin])
+}
+
+// Notification Content Table
+model NotificationContent {
+  id              String   @id @default(uuid())
+  notification_id String
+  content_link    String // URL or file reference
+  created_at      DateTime @default(now())
+
+  // Relationship
+  notification Notifications @relation(fields: [notification_id], references: [id])
+}
+
+// Posts Table
+model Posts {
+  id             String   @id @default(uuid())
+  institution_id String
+  title          String
+  description    String
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  // Relations
+  images      Images[]
+  institution Institutions @relation(fields: [institution_id], references: [eiin])
+}
+
+// Images Table (for post)
+model Images {
+  id         String   @id @default(uuid())
+  post_id    String
+  image_link String // URL or file reference
+  created_at DateTime @default(now())
+
+  // Relationship
+  post Posts @relation(fields: [post_id], references: [id])
+}
+
+// Courses Table
+model Courses {
+  id             String   @id @default(uuid())
+  institution_id String
+  course_code    String   @unique
+  title          String
+  description    String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  // Relations
+  batches     Batches[] // One course can have many batches
+  institution Institutions @relation(fields: [institution_id], references: [eiin])
+}
+
+// Batches Table
+model Batches {
+  id                    String   @id @default(uuid())
+  institution_id        String
+  course_id             String
+  batch_code            String   @unique
+  title                 String?
+  description           String?
+  start_date            DateTime
+  end_date              DateTime
+  next_batch            String?  @unique
+  homeroom_teacher_id   String?
+  class_captain_id      String?
+  vice_class_captain_id String?
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+
+  // Relations
+  course      Courses      @relation(fields: [course_id], references: [id])
+  sections    Sections[]
+  students    Students[]
+  institution Institutions @relation(fields: [institution_id], references: [eiin])
+}
+
+// Sections Table
+model Sections {
+  id                    String   @id @default(uuid())
+  batch_id              String
+  section_name          String
+  homeroom_teacher_id   String?
+  class_captain_id      String?
+  vice_class_captain_id String?
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+
+  // Relations
+  students Students[]
+  batch    Batches    @relation(fields: [batch_id], references: [id])
+}
+
+// Teachers Table
 model Teachers {
   id              String   @id @default(uuid())
-  instutaion_id   String
+  institution_id  String
   name_eng        String
   name_bng        String
-  teacher_id      String
-  teacher_enitial String
-  image           String
-  email           String
+  teacher_id      String   @unique
+  teacher_initial String
+  image           String // URL or file reference
+  email           String   @unique
   phone_number    String
-  password        String
+  password        String // Must be hashed in application logic
   religion        Religion @default(islam)
   gender          Gender   @default(male)
   date_of_birth   DateTime
   address         String?
-  signeture       String?
-  position        String?
-  blod_group      String?
-  role            In_Role  @default(teacher)
+  signature       String?
+  position        String? // e.g., "Headmaster", "Lecturer"
+  blood_group     String?
+  role            Role     @default(teacher)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
 
-  // Realationship
-  instutaion Inistutations @relation(fields: [instutaion_id], references: [eiin])
+  // Relationship
+  institution Institutions @relation(fields: [institution_id], references: [eiin])
 }
 
-// Student Table
+// Students Table
 model Students {
-  id            String        @id @default(uuid())
-  instutaion_id String
-  class_role    String
-  name_eng      String
-  name_bng      String
-  student_id    String
-  image         String
-  email         String
-  phone_number  String
-  password      String
-  religion      Religion      @default(islam)
-  gender        Gender        @default(male)
-  date_of_birth DateTime
-  address       String?
-  signeture     String?
-  blod_group    String?
-  role          In_Role       @default(student)
-  status        Studen_Status @default(current)
+  id             String        @id @default(uuid())
+  institution_id String
+  batch_id       String?
+  section_id     String?
+  class_roll     String
+  name_eng       String
+  name_bng       String
+  student_id     String        @unique
+  image          String // URL or file reference
+  email          String        @unique
+  phone_number   String
+  password       String
+  religion       Religion      @default(islam)
+  gender         Gender        @default(male)
+  date_of_birth  DateTime
+  address        String?
+  signature      String?
+  blood_group    String?
+  role           Role          @default(student)
+  status         StudentStatus @default(current)
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
 
-  // Realationship
-  instutaion Inistutations @relation(fields: [instutaion_id], references: [eiin])
+  // Relationships
+  institution Institutions @relation(fields: [institution_id], references: [eiin])
+  batch       Batches?     @relation(fields: [batch_id], references: [id])
+  section     Sections?    @relation(fields: [section_id], references: [id])
 }
 
+// Enums
 enum Religion {
   islam
   hindu
@@ -110,12 +229,15 @@ enum Gender {
   others
 }
 
-enum In_Role {
+enum Role {
   student
   teacher
+  admin
 }
 
-enum Studen_Status {
+enum StudentStatus {
   current
   alumni
+  dropout
+  rusticated
 }
