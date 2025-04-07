@@ -1,5 +1,5 @@
 import prisma from "../database/db.config.js";
-import { Instutation_type } from "@prisma/client";
+import { InstitutionType } from "@prisma/client";
 
 const newRegistration = async (req, res) => {
     // Implementation for new registration
@@ -21,7 +21,7 @@ const registerationInfo = async (req, res) => {
     };
 
     // Convert data dynamically using the regex-based function
-    const instutation_type = Object.values(Instutation_type).map(transformWithRegex);
+    const instutation_type = Object.values(InstitutionType).map(transformWithRegex);
     
     res.status(200).json(instutation_type);
 };
