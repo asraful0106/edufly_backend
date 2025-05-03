@@ -28,7 +28,7 @@ model Institutions {
   logo           String?
   type           InstitutionType @default(school)
   isVerified     Boolean         @default(false)
-  password       String // Must be hashed in app logic
+  password       String? // Must be hashed in app logic
   created_at     DateTime        @default(now())
   updated_at     DateTime        @updatedAt
 
