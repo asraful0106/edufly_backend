@@ -1,7 +1,8 @@
 import "dotenv/config.js"
 import express from "express";
-import registerRouter from "./routes/registration.route.js";
 import cors from "cors";
+import registerRouter from "./routes/registration.route.js";
+import searchRouter from "./routes/search.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 3010;
@@ -19,5 +20,7 @@ app.get('/', (req, res) => {
 
 // For handeling Registration
 app.use("/registration",registerRouter);
+// For handeling Search
+app.use("/search", searchRouter);
 
 app.listen(PORT, () => console.log(`Server is running at port: ${PORT}`));

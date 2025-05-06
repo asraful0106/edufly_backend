@@ -26,9 +26,12 @@ model Institutions {
   email          String          @unique
   document_proof String?
   logo           String?
+  cover_photo    String?
   type           InstitutionType @default(school)
   isVerified     Boolean         @default(false)
   password       String? // Must be hashed in app logic
+  longitude      String?
+  latitude       String?
   created_at     DateTime        @default(now())
   updated_at     DateTime        @updatedAt
 
@@ -45,7 +48,7 @@ model Institutions {
   classTests         ClassTests[]
   resultApprovals    ResultApprovals[] // Added for result approval
   stuedentAttendance StudentAttendance[]
-  parents Parents[]
+  parents            Parents[]
 }
 
 enum InstitutionType {
@@ -355,7 +358,7 @@ model Students {
   results           Results[]
   classTests        ClassTests[]
   studentAttendance StudentAttendance[]
-  parents Parents[]
+  parents           Parents[]
   // Realtionship
   institution       Institutions        @relation(fields: [institution_id], references: [eiin])
   batch             Batches             @relation(fields: [batch_id], references: [id])
@@ -389,23 +392,23 @@ model StudentAttendance {
 
 // Parent Information
 model Parents {
-  id             String           @id @default(uuid())
-  institution_id String
-  student_id     String
-  father_name String?
-  father_phone String?
-  father_email String?
-  father_id_number String?
+  id                String  @id @default(uuid())
+  institution_id    String
+  student_id        String
+  father_name       String?
+  father_phone      String?
+  father_email      String?
+  father_id_number  String?
   father_occupotion String?
-  mother_name  String?
-  mother_phone String?
-  mother_email String?
-  mother_id_number String?
+  mother_name       String?
+  mother_phone      String?
+  mother_email      String?
+  mother_id_number  String?
   mother_occupotion String?
 
   // Relation
   institution Institutions @relation(fields: [institution_id], references: [eiin])
-  student Students @relation(fields: [student_id], references: [id])
+  student     Students     @relation(fields: [student_id], references: [id])
 }
 
 // Enums
