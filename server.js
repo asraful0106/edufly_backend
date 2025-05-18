@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import registerRouter from "./routes/registration.route.js";
 import searchRouter from "./routes/search.route.js";
+import postRouter from "./routes/post.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 3010;
@@ -22,5 +23,7 @@ app.get('/', (req, res) => {
 app.use("/registration",registerRouter);
 // For handeling Search
 app.use("/search", searchRouter);
+// For handeling Post
+app.use("/post", postRouter);
 
 app.listen(PORT, () => console.log(`Server is running at port: ${PORT}`));
