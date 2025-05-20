@@ -132,6 +132,41 @@ const createPost = async (req, res) => {
     });
 }
 
+// For updating the post 
+const updatePost = async (req, res) => {
+    const { post_id } = req.params;
+    const { title, description } = req.body;
+
+    if (!post_id) {
+        return res.status(400).json({ message: "Post id is requied!" });
+    }
+
+    try {
+        const post = await prisma.posts.findUnique({
+            where: {
+                id: post_id
+            }
+        });
+        if (!post) {
+            return res.status(400).json({ message: "Post is not found!" });
+        }
+
+        const updatedPost = await prisma.posts.update({
+            where: {
+                id: post_id,
+                title,
+                description,
+            }
+        });
+        res.status(200).json({ updatedPost });
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Internal server error!" });
+    }
+};
+
+// For deleting the post
 const deleteOnePost = async (req, res) => {
     const { post_id } = req.params;
     if (!post_id) {
@@ -160,4 +195,4 @@ const deleteOnePost = async (req, res) => {
     }
 }
 
-export { getAllPost, createPost, deleteOnePost }
+export { getAllPost, createPost, updatePost, deleteOnePost }
