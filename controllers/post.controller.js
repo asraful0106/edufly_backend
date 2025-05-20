@@ -132,4 +132,32 @@ const createPost = async (req, res) => {
     });
 }
 
-export { getAllPost, createPost }
+const deleteOnePost = async (req, res) => {
+    const { post_id } = req.params;
+    if (!post_id) {
+        return res.status(400).json({ message: "Post id is required!" });
+    }
+
+    try {
+        const isPost = await prisma.posts.findUnique({
+            where: {
+                id: post_id
+            }
+        });
+        if (!isPost) {
+            return res.status(400).json({ message: "Post not found!" });
+        }
+
+        const deletedPost = await prisma.posts.delete({
+            where: {
+                id: post_id
+            }
+        });
+        res.status(200).json(deletedPost);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Internal server error!" });
+    }
+}
+
+export { getAllPost, createPost, deleteOnePost }
