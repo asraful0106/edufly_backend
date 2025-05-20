@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { createPost } from '../controllers/post.controller.js';
+import { createPost, getAllPost } from '../controllers/post.controller.js';
 
 const postRouter = Router();
 
 // For getting the post
-postRouter.get('/', (req, res) =>{
-
+postRouter.get('/:eiin_id', async(req, res) =>{
+    getAllPost(req, res);
 });
 
-// For posting the post
+// For creating the post
 postRouter.post('/', async(req, res) => {
     createPost(req, res);
 });

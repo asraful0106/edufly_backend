@@ -32,6 +32,39 @@ const upload = multer({
     }
 });
 
+// For getting the post
+const getAllPost = async (req, res) => {
+    try {
+        const institution_id = req.params.eiin_id;
+        if (!institution_id) {
+            return res.status(400).json({ message: "All the filed are required!" });
+        }
+        // Check if institution exists
+        const institutionEiin = await prisma.institutions.findUnique({
+            where: {
+                eiin: institution_id,
+            },
+        });
+        if (!institutionEiin) {
+            return res.status(404).json({ message: "Institution is not exist!" });
+        }
+
+        const post = await prisma.posts.findMany({
+            where: {
+                institution_id
+            },
+            include: {
+                images: true,
+            }
+        });
+        res.status(200).json(post);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Internal server error!" });
+    }
+}
+
+// For creating the post
 const createPost = async (req, res) => {
     upload.array('fileInputField', 30)(req, res, async (err) => {
         if (err) {
@@ -99,4 +132,4 @@ const createPost = async (req, res) => {
     });
 }
 
-export { createPost }
+export { getAllPost, createPost }

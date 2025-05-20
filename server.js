@@ -4,6 +4,7 @@ import cors from "cors";
 import registerRouter from "./routes/registration.route.js";
 import searchRouter from "./routes/search.route.js";
 import postRouter from "./routes/post.route.js";
+import imageRouter from "./routes/image.rotue.js";
 
 const app = express();
 const PORT = process.env.PORT || 3010;
@@ -25,5 +26,7 @@ app.use("/registration",registerRouter);
 app.use("/search", searchRouter);
 // For handeling Post
 app.use("/post", postRouter);
+// For handeling the iamge or video serving
+app.use("/image", imageRouter);
 
 app.listen(PORT, () => console.log(`Server is running at port: ${PORT}`));
