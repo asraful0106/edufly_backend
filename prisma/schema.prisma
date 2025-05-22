@@ -286,6 +286,7 @@ model Teachers {
   name_bng         String
   teacher_id       String
   teacher_initial  String
+  about            String?  @db.Text
   fingerprint      Json?
   image            String
   email            String   @unique
@@ -308,9 +309,33 @@ model Teachers {
   classTests        ClassTests[]
   studentAttendance StudentAttendance[]
   teacherAttendance TeacherAttendance[]
+  teacherDegree TeacherDegree[]
+  teacherAchivment TeacherAchivment[]
 
   // Relationship
   institution Institutions @relation(fields: [institution_id], references: [eiin])
+}
+
+// Teacher Degree Table
+model TeacherDegree{
+  id String @id @default(uuid())
+  teacher_id String
+  title String
+  passing_year DateTime
+  // Relation
+  teacher Teachers @relation(fields: [teacher_id], references: [id])
+}
+
+// Teacher Achivment Table
+model TeacherAchivment{
+  id String @id @default(uuid())
+  teacher_id String
+  title String
+  description String @db.Text
+  year DateTime
+
+  // Relation
+  teacher Teachers @relation(fields: [teacher_id], references: [id])
 }
 
 // Teacher Attendance Table
