@@ -28,7 +28,7 @@ const storageForTeacherSigneture = multer.diskStorage({
 
 // For upload teacher Image and Signature
 const uploadTeacherFiles = multer({
-    storage: multer.diskStorage({}), 
+    storage: multer.diskStorage({}),
     fileFilter: (req, file, cb) => {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
         if (allowedTypes.includes(file.mimetype)) {
@@ -86,7 +86,7 @@ const createTeacher = async (req, res) => {
             role
         } = req.body;
 
-        console.log("req2: ",req.body);
+        console.log("req2: ", req.body);
 
         // Validate required fields
         if (!name_eng || !name_bng || !teacher_id || !teacher_initial ||
@@ -154,6 +154,36 @@ const createTeacher = async (req, res) => {
     }
 };
 
+// Get all teachers
+const getAllTeacher = async (req, res) => {
+    try {
+        const institution_id = req.params.institution_id;
+        if (!institution_id) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Institution ID is required',
+                data: null
+            });
+        }
+        const teachers = await prisma.teachers.findMany({
+            where: {
+                institution_id
+            }
+        });
+        return res.status(200).json({
+            status: 'success',
+            message: 'Teachers retrieved successfully',
+            data: teachers
+        });
+    } catch (err) {
+        res.status(500).json({
+            status: 'error',
+            message: 'Internal Server Error!',
+            data: null
+        });
+    }
+}
+
 // get Teacher ID and Teacher Initial availability
 const getTeacherIdAndInitialAvailability = async (req, res) => {
     try {
@@ -166,14 +196,14 @@ const getTeacherIdAndInitialAvailability = async (req, res) => {
             });
         }
 
-        if(!teacehr_id && !teacher_initial){
+        if (!teacehr_id && !teacher_initial) {
             return res.status(404).json({
                 status: 'error',
                 message: 'No teacher_id and teacher_initial found.',
             });
         }
         // Teacher Id is given
-        if(teacehr_id){
+        if (teacehr_id) {
             const teacherIdAvailability = await prisma.teachers.findFirst({
                 where: {
                     institution_id: institution_id, teacher_id: teacehr_id,
@@ -222,4 +252,9 @@ const getTeacherIdAndInitialAvailability = async (req, res) => {
     }
 }
 
-export { createTeacher, uploadTeacherFiles, getTeacherIdAndInitialAvailability };
+export {
+    createTeacher,
+    uploadTeacherFiles,
+    getTeacherIdAndInitialAvailability,
+    getAllTeacher
+};
