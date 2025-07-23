@@ -5,6 +5,7 @@ import registerRouter from "./routes/registration.route.js";
 import searchRouter from "./routes/search.route.js";
 import postRouter from "./routes/post.route.js";
 import imageRouter from "./routes/image.rotue.js";
+import iTeacherRouter from "./routes/i_teacher.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 3010;
@@ -28,5 +29,7 @@ app.use("/search", searchRouter);
 app.use("/post", postRouter);
 // For handeling the iamge or video serving
 app.use("/image", imageRouter);
+// For handeling teacher
+app.use("/teacher", iTeacherRouter);
 
 app.listen(PORT, () => console.log(`Server is running at port: ${PORT}`));
