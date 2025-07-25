@@ -30,7 +30,7 @@ const storageForTeacherSigneture = multer.diskStorage({
 const uploadTeacherFiles = multer({
     storage: multer.diskStorage({}),
     fileFilter: (req, file, cb) => {
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/avif'];
         if (allowedTypes.includes(file.mimetype)) {
             cb(null, true);
         } else {
@@ -47,9 +47,9 @@ const createTeacher = async (req, res) => {
     const institution_id = req.params.institution_id;
 
     // Log incoming data for debugging
-    console.log("req.body:", req.body);
-    console.log("req.files:", req.files);
-    console.log("req.params.institution_id:", institution_id);
+    // console.log("req.body:", req.body);
+    // console.log("req.files:", req.files);
+    // console.log("req.params.institution_id:", institution_id);
 
     if (!institution_id) {
         console.log("Institution Err: ", institution_id);
@@ -99,19 +99,27 @@ const createTeacher = async (req, res) => {
         }
 
         // Handle file uploads
-        const imagePath = req.files.image ? `/teacher_Image/${req.files.image[0].filename}` : null;
-        const signaturePath = req.files.signature ? `/teacher_Signeture/${req.files.signature[0].filename}` : null;
+        const imagePath = req.files.image ? `${req.files.image[0].filename}${path.extname(req.files.image[0].originalname)}` : null;
+        const signaturePath = req.files.signature ? `${req.files.signature[0].filename}${path.extname(req.files.image[0].originalname)}` : null;
 
         // Move files to correct directories (since we used temporary storage)
         if (req.files.image) {
             const tempPath = req.files.image[0].path;
-            const targetPath = path.join(teacherImageUplodDirName, req.files.image[0].filename);
+            // Extract the file extension from the original filename
+            const fileExtension = path.extname(req.files.image[0].originalname);
+            const fileNameWithExtensiton = `${req.files.image[0].filename}${fileExtension}`
+            // const targetPath = path.join(teacherImageUplodDirName, req.files.image[0].
+            // filename);
+            const targetPath = path.join(teacherImageUplodDirName, fileNameWithExtensiton);
             await fse.move(tempPath, targetPath);
         }
         if (req.files.signature) {
-            const tempPath = req.files.signature[0].path;
-            const targetPath = path.join(teachersignetureUplodDirName, req.files.signature[0].filename);
-            await fse.move(tempPath, targetPath);
+            const tempPath1 = req.files.signature[0].path;
+            // Extract the file extension from the original filename
+            const fileExtension1 = path.extname(req.files.signature[0].originalname);
+            const fileNameWithExtensiton1 = `${req.files.signature[0].filename}${fileExtension1}`
+            const targetPath1 = path.join(teachersignetureUplodDirName, fileNameWithExtensiton1);
+            await fse.move(tempPath1, targetPath1);
         }
 
         // Create new teacher record
@@ -153,6 +161,46 @@ const createTeacher = async (req, res) => {
         });
     }
 };
+
+// Delete Teacher
+const deleteTeacher = async (req, res) => {
+    try{
+        const { teacher_id } = req.params;
+        const { institution_id } = req.body;
+
+        if(!teacher_id && institution_id){
+            return res.status(400).json({
+                status: 'error',
+                message: 'Teacher and institution ID is required'
+            });
+        }
+
+        // console.log(teacher_id, institution_id);
+
+        const deleteTeacher = await prisma.teachers.delete({
+            where:{
+                institution_id,
+                id: teacher_id
+            }
+        });
+
+        res.status(200).json({
+            success: true,
+            status: 'success',
+            message: 'Teacher deleted successfully',
+            // data: deleteTeacher
+        });
+
+    }catch(err){
+        console.error('Error creating teacher:', err);
+        return res.status(500).json({
+            success: false,
+            status: 'error',
+            message: 'Failed to delete teacher',
+            error: err.message
+        });
+    }
+}
 
 // Get all teachers
 const getAllTeacher = async (req, res) => {
@@ -255,6 +303,7 @@ const getTeacherIdAndInitialAvailability = async (req, res) => {
 export {
     createTeacher,
     uploadTeacherFiles,
+    deleteTeacher,
     getTeacherIdAndInitialAvailability,
     getAllTeacher
 };

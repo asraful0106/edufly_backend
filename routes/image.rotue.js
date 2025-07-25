@@ -1,5 +1,5 @@
 import {Router} from "express";
-import { getImage } from "../controllers/image.controller.js";
+import { getImage, getTeacherImage, getTeacherSignetureImage } from "../controllers/image.controller.js";
 
 const imageRouter = Router();
 
@@ -7,5 +7,9 @@ const imageRouter = Router();
 imageRouter.get('/:image_name', (req, res) => {
     getImage(req, res);
 });
+// To handale the teacher iamge
+imageRouter.get('/teacher/:image_name', getTeacherImage);
+// To handale the teacher signeture iamge
+imageRouter.get('/teacher-signeture/:image_name', getTeacherSignetureImage);
 
 export default imageRouter;
