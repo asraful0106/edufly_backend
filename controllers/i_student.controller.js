@@ -108,6 +108,7 @@ const createStudent = async (req, res) => {
             name_bng,
             student_id,
             batch_id,
+            class_roll,
             email,
             phone_number,
             religion,
@@ -119,8 +120,6 @@ const createStudent = async (req, res) => {
             blood_group,
             role
         } = req.body;
-
-
 
         // Validate required fields
         if (!name_eng || !name_bng || !student_id||
@@ -134,7 +133,8 @@ const createStudent = async (req, res) => {
 
         // Handle file uploads
         const imagePath = req.files.image ? `${req.files.image[0].filename}${path.extname(req.files.image[0].originalname)}` : null;
-        const signaturePath = req.files.signature ? `${req.files.signature[0].filename}${path.extname(req.files.image[0].originalname)}` : null;
+        // const signaturePath = req.files.signature ? `${req.files.signature[0].filename}${path.extname(req.files.image[0].originalname)}` : null;
+        const signaturePath = req.files.signature ? `${req.files.signature[0].filename}${path.extname(req.files.signature[0].originalname)}` : null;
 
         // Move files to correct directories (since we used temporary storage)
         if (req.files.image) {
@@ -164,6 +164,7 @@ const createStudent = async (req, res) => {
                 name_bng,
                 student_id,
                 batch_id,
+                class_roll,
                 image: imagePath,
                 email,
                 phone_number,
@@ -209,9 +210,9 @@ const deleteStudent = async (req, res) => {
             });
         }
 
-        // console.log(teacher_id, institution_id);
+        console.log(student_id, institution_id);
 
-        const deleteStudent = await prisma.students.delete({
+        await prisma.students.delete({
             where: {
                 institution_id,
                 id: teacher_id
@@ -221,8 +222,7 @@ const deleteStudent = async (req, res) => {
         res.status(200).json({
             success: true,
             status: 'success',
-            message: 'Student deleted successfully',
-            // data: deleteTeacher
+            message: 'Student deleted successfully'
         });
 
     } catch (err) {
@@ -248,9 +248,33 @@ const getAllStudent = async (req, res) => {
             });
         }
         const students = await prisma.students.findMany({
-            where: {
-                institution_id
-            }
+            where: { institution_id },
+            select: {
+                id: true,
+                name_eng: true,
+                name_bng: true,
+                student_id: true,
+                batch_id: true,
+                class_id: true,
+                section_id: true,
+                class_roll: true,
+                email: true,
+                image: true,
+                phone_number: true,
+                date_of_birth: true,
+                religion: true,
+                gender: true,
+                present_adress: true,
+                parmanent_adress: true,
+                blood_group: true,
+                status: true,
+                role: true,
+                created_at: true,
+                // grab only the code from the related batch
+                batch: {
+                    select: { batch_code: true },
+                },
+            },
         });
         return res.status(200).json({
             status: 'success',

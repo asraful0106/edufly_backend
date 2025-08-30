@@ -7,5 +7,9 @@ const iStudentRouter = Router();
 iStudentRouter.get("/is-available", iStudentController.getStudentAvaiability);
 // For Getting all the Student
 iStudentRouter.get("/:institution_id", iStudentController.getAllStudent);
+//For creating student
+iStudentRouter.post("/:institution_id",iStudentController.uploadStudentFiles, iStudentController.createStudent);
+//For creating student
+iStudentRouter.delete("/delete/:student_id", iStudentController.deleteStudent);
 
 export default iStudentRouter;

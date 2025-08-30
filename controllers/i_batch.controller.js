@@ -2,7 +2,7 @@ import prisma from "../database/db.config.js"
 
 // For getiing all batch code
 const getAllBatchCode = async (req, res) => {
-    const { institution_id } = req.body;
+    const { institution_id } = req.query;
     if (!institution_id){
         return res.status(400).json({
             success: false,
