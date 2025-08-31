@@ -13,7 +13,8 @@ const getAllBatchCode = async (req, res) => {
     try {
         const allBatchCode = await prisma.batches.findMany({
             where:{
-                institution_id
+                institution_id,
+                orderBy: { created_at: "desc" }
             }
         });
         if (!allBatchCode) {
@@ -33,6 +34,27 @@ const getAllBatchCode = async (req, res) => {
         });
     }
 }
+
+const updateBatch = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { batch_code, starting_date, ending_date } = req.body;
+        const data = await prisma.batches.update({
+            where: { id },
+            data: { batch_code, starting_date: asDate(starting_date), ending_date: asDate(ending_date) },
+        });
+        res.json({ status: "success", data });
+    } catch (e) { res.status(500).json({ message: e.message }); }
+}
+
+const deleteBatch = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await prisma.batches.delete({ where: { id } });
+        res.json({ status: "success" });
+    } catch (e) { res.status(500).json({ message: e.message }); }
+}
+
 // Cheking Batch code for isUniqe
 const isBatchUnique = async (req, res) => {
     const { batch_code, institution_id } = req.body;
@@ -95,21 +117,6 @@ const createNewBatch = async (req, res) => {
                 message: "Institution not found!"
             });
         }
-
-        // if (!starting_date || !ending_date) {
-
-        //     const newBatch = prisma.batches.create({
-        //         data: {
-        //             institution_id,
-        //             batch_code
-        //         }
-        //     });
-        //     return res.status(201).json({
-        //         success: true,
-        //         message: "Successfully batch created.",
-        //         data: newBatch
-        //     });
-        // }
         const newBatch = await prisma.batches.create({
             data: {
                 institution_id,
@@ -136,5 +143,7 @@ const createNewBatch = async (req, res) => {
 export const iBatchController = {
     getAllBatchCode,
     isBatchUnique,
-    createNewBatch
+    createNewBatch,
+    updateBatch,
+    deleteBatch
 }
