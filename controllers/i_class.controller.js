@@ -1,3 +1,5 @@
+import prisma from "../database/db.config.js";
+
 const getAllClass = async (req, res) => {
     try {
         const { institution_id } = req.query;
@@ -36,7 +38,10 @@ const getAllClass = async (req, res) => {
         }));
 
         res.json({ status: "success", data });
-    } catch (e) { res.status(500).json({ message: e.message }); }
+    } catch (e) {
+        console.error('Error getting classes:', e);
+        res.status(500).json({ message: e.message });
+     }
 }
 
 const createClass = async (req, res) => {
@@ -75,7 +80,10 @@ const createClass = async (req, res) => {
         });
 
         res.status(201).json({ status: "success", data: result });
-    } catch (e) { res.status(500).json({ message: e.message }); }
+    } catch (e) {
+        console.error('Error creating classes:', e);
+         res.status(500).json({ message: e.message });
+         }
 }
 
 const updateClass = async (req, res) => {
@@ -117,7 +125,10 @@ const updateClass = async (req, res) => {
         });
 
         res.json({ status: "success", data: updated });
-    } catch (e) { res.status(500).json({ message: e.message }); }
+    } catch (e) {
+        console.error('Error updating classes:', e);
+        res.status(500).json({ message: e.message }); 
+    }
 }
 
 const deleteClass = async (req, res) => {
@@ -129,7 +140,10 @@ const deleteClass = async (req, res) => {
             prisma.classes.delete({ where: { id } }),
         ]);
         res.json({ status: "success" });
-    } catch (e) { res.status(500).json({ message: e.message }); }
+    } catch (e) {
+        console.error('Error deleting classes:', e);
+        res.status(500).json({ message: e.message }); 
+    }
 }
 
 export const classController = {

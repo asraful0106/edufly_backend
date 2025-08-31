@@ -10,7 +10,8 @@ iTeacherRouter.get('/isAvailable', getTeacherIdAndInitialAvailability);
 // For deleting the teacher
 iTeacherRouter.delete('/delete/:teacher_id', deleteTeacher);
 // For Getting all the Teacher
-iTeacherRouter.get("/:institution_id", getAllTeacher);
+// iTeacherRouter.get("/:institution_id", getAllTeacher);
+iTeacherRouter.get("/", getAllTeacher);
 // For creating a teacher (POST)
 iTeacherRouter.post('/:institution_id', uploadTeacherFiles, createTeacher);
 

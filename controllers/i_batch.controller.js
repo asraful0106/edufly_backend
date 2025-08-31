@@ -13,8 +13,10 @@ const getAllBatchCode = async (req, res) => {
     try {
         const allBatchCode = await prisma.batches.findMany({
             where:{
-                institution_id,
-                orderBy: { created_at: "desc" }
+                institution_id
+            },
+            orderBy: {
+                created_at: "desc"
             }
         });
         if (!allBatchCode) {
@@ -28,6 +30,7 @@ const getAllBatchCode = async (req, res) => {
             data: allBatchCode
         });
     } catch (err) {
+        console.error('Error getting batches:', err);
         res.status(500).json({
             status: false,
             message: "Internal server error."
@@ -44,7 +47,10 @@ const updateBatch = async (req, res) => {
             data: { batch_code, starting_date: asDate(starting_date), ending_date: asDate(ending_date) },
         });
         res.json({ status: "success", data });
-    } catch (e) { res.status(500).json({ message: e.message }); }
+    } catch (e) {
+        console.error('Error updating batches:', e);
+        res.status(500).json({ message: e.message }); 
+    }
 }
 
 const deleteBatch = async (req, res) => {
@@ -52,7 +58,10 @@ const deleteBatch = async (req, res) => {
         const { id } = req.params;
         await prisma.batches.delete({ where: { id } });
         res.json({ status: "success" });
-    } catch (e) { res.status(500).json({ message: e.message }); }
+    } catch (e) {
+        console.error('Error deleting batches:', e);
+        res.status(500).json({ message: e.message }); 
+    }
 }
 
 // Cheking Batch code for isUniqe
@@ -87,6 +96,7 @@ const isBatchUnique = async (req, res) => {
             bCode_exist: false
         });
     } catch (err) {
+        console.error('Error on batchUniqe batches:', err);
         res.status(500).json({
             status: false,
             message: "Internal server error.",
@@ -131,7 +141,7 @@ const createNewBatch = async (req, res) => {
             data: newBatch
         });
     } catch (err) {
-        console.log(err);
+        console.error('Error creating batches:', e);
         res.status(500).json({
             status: false,
             message: "Internal server error.",

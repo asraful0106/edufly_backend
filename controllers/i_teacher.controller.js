@@ -86,7 +86,7 @@ const createTeacher = async (req, res) => {
             role
         } = req.body;
 
-        console.log("req2: ", req.body);
+        // console.log("req2: ", req.body);
 
         // Validate required fields
         if (!name_eng || !name_bng || !teacher_id || !teacher_initial ||
@@ -192,7 +192,7 @@ const deleteTeacher = async (req, res) => {
         });
 
     }catch(err){
-        console.error('Error creating teacher:', err);
+        console.error('Error deleting teacher:', err);
         return res.status(500).json({
             success: false,
             status: 'error',
@@ -205,7 +205,7 @@ const deleteTeacher = async (req, res) => {
 // Get all teachers
 const getAllTeacher = async (req, res) => {
     try {
-        const institution_id = req.params.institution_id;
+        const institution_id = req.query.institution_id;
         if (!institution_id) {
             return res.status(400).json({
                 status: 'error',
@@ -224,6 +224,7 @@ const getAllTeacher = async (req, res) => {
             data: teachers
         });
     } catch (err) {
+        console.error('Error getting teacher:', err);
         res.status(500).json({
             status: 'error',
             message: 'Internal Server Error!',
@@ -292,6 +293,7 @@ const getTeacherIdAndInitialAvailability = async (req, res) => {
             });
         }
     } catch (err) {
+        console.error('Error getting teacher avilabiltiy:', err);
         res.status(500).json({
             status: 'error',
             message: 'Internal Server Error',
