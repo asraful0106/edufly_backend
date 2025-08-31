@@ -119,12 +119,14 @@ model Courses {
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
 
-  classes           Classes[]
-  results           Results[]
-  classTests        ClassTests[]
-  markSegments      CourseMarkSegments[] // Added for mark segments
-  studentAttendance StudentAttendance[]
-  institution       Institutions         @relation(fields: [institution_id], references: [eiin])
+  classes               Classes[]
+  results               Results[]
+  classTests            ClassTests[]
+  markSegments          CourseMarkSegments[] // Added for mark segments
+  studentAttendance     StudentAttendance[]
+  institution           Institutions            @relation(fields: [institution_id], references: [eiin])
+  ClassCourses          ClassCourses[]
+  SectionCourseTeachers SectionCourseTeachers[]
 }
 
 // Batches Table
@@ -162,6 +164,7 @@ model Classes {
   students          Students[]
   classTests        ClassTests[]
   studentAttendance StudentAttendance[]
+  classCourse       ClassCourses[]
   course            Courses             @relation(fields: [course_id], references: [id])
   institution       Institutions        @relation(fields: [institution_id], references: [eiin])
 }
@@ -177,11 +180,12 @@ model Sections {
   created_at            DateTime @default(now())
   updated_at            DateTime @updatedAt
 
-  students          Students[]
-  results           Results[]
-  classTests        ClassTests[]
-  studentAttendance StudentAttendance[]
-  class             Classes             @relation(fields: [class_id], references: [id])
+  students              Students[]
+  results               Results[]
+  classTests            ClassTests[]
+  studentAttendance     StudentAttendance[]
+  class                 Classes                 @relation(fields: [class_id], references: [id])
+  SectionCourseTeachers SectionCourseTeachers[]
 }
 
 // Course Mark Segments Table
@@ -309,30 +313,31 @@ model Teachers {
   classTests        ClassTests[]
   studentAttendance StudentAttendance[]
   teacherAttendance TeacherAttendance[]
-  teacherDegree TeacherDegree[]
-  teacherAchivment TeacherAchivment[]
+  teacherDegree     TeacherDegree[]
+  teacherAchivment  TeacherAchivment[]
 
   // Relationship
-  institution Institutions @relation(fields: [institution_id], references: [eiin])
+  institution           Institutions            @relation(fields: [institution_id], references: [eiin])
+  SectionCourseTeachers SectionCourseTeachers[]
 }
 
 // Teacher Degree Table
-model TeacherDegree{
-  id String @id @default(uuid())
-  teacher_id String
-  title String
+model TeacherDegree {
+  id           String   @id @default(uuid())
+  teacher_id   String
+  title        String
   passing_year DateTime
   // Relation
-  teacher Teachers @relation(fields: [teacher_id], references: [id])
+  teacher      Teachers @relation(fields: [teacher_id], references: [id])
 }
 
 // Teacher Achivment Table
-model TeacherAchivment{
-  id String @id @default(uuid())
-  teacher_id String
-  title String
-  description String @db.Text
-  year DateTime
+model TeacherAchivment {
+  id          String   @id @default(uuid())
+  teacher_id  String
+  title       String
+  description String   @db.Text
+  year        DateTime
 
   // Relation
   teacher Teachers @relation(fields: [teacher_id], references: [id])
@@ -477,4 +482,31 @@ enum AttendanceStatus {
   absent
   late
   leave
+}
+
+// -----------***-----------
+model ClassCourses {
+  id         String   @id @default(uuid())
+  class_id   String
+  course_id  String
+  created_at DateTime @default(now())
+
+  class  Classes @relation(fields: [class_id], references: [id])
+  course Courses @relation(fields: [course_id], references: [id])
+
+  @@unique([class_id, course_id])
+}
+
+model SectionCourseTeachers {
+  id         String   @id @default(uuid())
+  section_id String
+  course_id  String
+  teacher_id String
+  created_at DateTime @default(now())
+
+  section Sections @relation(fields: [section_id], references: [id])
+  course  Courses  @relation(fields: [course_id], references: [id])
+  teacher Teachers @relation(fields: [teacher_id], references: [id])
+
+  @@unique([section_id, course_id]) // one teacher per course per section
 }

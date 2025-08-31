@@ -8,6 +8,7 @@ import imageRouter from "./routes/image.rotue.js";
 import iTeacherRouter from "./routes/i_teacher.route.js";
 import iStudentRouter from "./routes/i_student.route.js";
 import iBatchRoute from "./routes/i_batch.route.js";
+import iCourseRouter from "./routes/i_course.router.js";
 
 const app = express();
 const PORT = process.env.PORT || 3010;
@@ -37,5 +38,7 @@ app.use("/teacher", iTeacherRouter);
 app.use("/student", iStudentRouter);
 // For handeling Batch
 app.use("/batch", iBatchRoute);
+// For handeling Course
+app.use("/courses", iCourseRouter)
 
 app.listen(PORT, () => console.log(`Server is running at port: ${PORT}`));
