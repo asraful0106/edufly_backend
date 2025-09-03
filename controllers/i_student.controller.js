@@ -338,10 +338,51 @@ const getStudentAvaiability = async (req, res) => {
     }
 }
 
+const updatePlacement = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const student = await prisma.students.findUnique({ where: { id } });
+        if (!student) return res.status(404).json({ message: "Student not found." });
+
+        const { batch_id, class_id, section_id } = await validatePlacement({
+            institution_id: student.institution_id,
+            batch_id: req.body.batch_id,
+            class_id: req.body.class_id,
+            section_id: req.body.section_id,
+        });
+
+        const updated = await prisma.students.update({
+            where: { id },
+            data: {
+                batch_id: batch_id ?? student.batch_id,
+                class_id: class_id ?? null,
+                section_id: section_id ?? null,
+            },
+            include: {
+                batch: { select: { id: true, batch_code: true } },
+                class: {
+                    select: {
+                        id: true,
+                        title: true,
+                        batch_code: true,
+                        course: { select: { id: true, title: true, course_code: true } },
+                    },
+                },
+                section: { select: { id: true, section_name: true } },
+            },
+        });
+
+        res.json({ status: "success", data: updated });
+    } catch (e) {
+        res.status(400).json({ message: e.message });
+    }
+}
+
 export const iStudentController = {
     getStudentAvaiability,
     getAllStudent,
     deleteStudent,
     createStudent,
-    uploadStudentFiles
+    uploadStudentFiles,
+    updatePlacement
 }

@@ -11,6 +11,7 @@ import iBatchRoute from "./routes/i_batch.route.js";
 import iCourseRouter from "./routes/i_course.router.js";
 import iClassRouter from "./routes/i_class.route.js";
 import iSectionRouter from "./routes/i_section.route.js";
+import resultRouter from "./routes/i_resutl.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 3010;
@@ -46,5 +47,7 @@ app.use("/courses", iCourseRouter);
 app.use("/classes", iClassRouter);
 // For handeling the sections
 app.use("/sections", iSectionRouter);
+// For handeling result
+app.use("/results",resultRouter);
 
 app.listen(PORT, () => console.log(`Server is running at port: ${PORT}`));

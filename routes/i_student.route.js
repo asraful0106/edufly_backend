@@ -11,5 +11,8 @@ iStudentRouter.get("/:institution_id", iStudentController.getAllStudent);
 iStudentRouter.post("/:institution_id",iStudentController.uploadStudentFiles, iStudentController.createStudent);
 //For creating student
 iStudentRouter.delete("/delete/:student_id", iStudentController.deleteStudent);
+// For updating placement
+iStudentRouter.patch("/:id/placement", iStudentController.updatePlacement);
+
 
 export default iStudentRouter;
