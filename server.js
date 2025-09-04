@@ -12,6 +12,7 @@ import iCourseRouter from "./routes/i_course.router.js";
 import iClassRouter from "./routes/i_class.route.js";
 import iSectionRouter from "./routes/i_section.route.js";
 import resultRouter from "./routes/i_resutl.route.js";
+import iStudentAttandance from "./routes/i_studentAttandance.js";
 
 const app = express();
 const PORT = process.env.PORT || 3010;
@@ -49,5 +50,7 @@ app.use("/classes", iClassRouter);
 app.use("/sections", iSectionRouter);
 // For handeling result
 app.use("/results",resultRouter);
+// For handeling teacher attandance
+app.use("/attendance", iStudentAttandance)
 
 app.listen(PORT, () => console.log(`Server is running at port: ${PORT}`));
