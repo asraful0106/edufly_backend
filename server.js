@@ -14,6 +14,8 @@ import iSectionRouter from "./routes/i_section.route.js";
 import resultRouter from "./routes/i_resutl.route.js";
 import iStudentAttandance from "./routes/i_studentAttandance.js";
 import iTeacherResult from "./routes/i_teacher_results.routes.js";
+import cookieParser from 'cookie-parser';
+import authRouter from "./routes/auth.router.js";
 
 const app = express();
 const PORT = process.env.PORT || 3010;
@@ -23,7 +25,12 @@ app.use(express.json());
 // Use express.urlencoded() for parsing URL-encoded data
 app.use(express.urlencoded({extended: false}));
 // Applying Cors for applying CORS policy
-app.use(cors());
+app.use(cors({
+    origin: process.env.CLIENT_ORIGIN,
+    credentials: true,
+}));
+// app.use(cors());
+app.use(cookieParser());
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
@@ -55,5 +62,7 @@ app.use("/results",resultRouter);
 app.use("/attendance", iStudentAttandance)
 // For handeling teacher result publising
 app.use("/teacher-results", iTeacherResult)
+// For authentication
+app.use('/auth', authRouter);
 
 app.listen(PORT, () => console.log(`Server is running at port: ${PORT}`));
