@@ -16,6 +16,7 @@ import iStudentAttandance from "./routes/i_studentAttandance.js";
 import iTeacherResult from "./routes/i_teacher_results.routes.js";
 import cookieParser from 'cookie-parser';
 import authRouter from "./routes/auth.router.js";
+import iTeacherProfileRoute from "./routes/i_teacher_profile.router.js";
 
 const app = express();
 const PORT = process.env.PORT || 3010;
@@ -46,6 +47,8 @@ app.use("/post", postRouter);
 app.use("/image", imageRouter);
 // For handeling teacher
 app.use("/teacher", iTeacherRouter);
+// For teacher profiel
+app.use("/teacher-profile", iTeacherProfileRoute)
 // For handeling student
 app.use("/student", iStudentRouter);
 // For handeling Batch
