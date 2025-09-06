@@ -3,6 +3,8 @@ import { iStudentController } from "../controllers/i_student.controller.js";
 
 const iStudentRouter = Router();
 
+// Getting student profile
+iStudentRouter.get("/me", iStudentController.getMe);
 // For getting uniqe status of student id
 iStudentRouter.get("/is-available", iStudentController.getStudentAvaiability);
 // For Getting all the Student

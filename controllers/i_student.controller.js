@@ -378,11 +378,36 @@ const updatePlacement = async (req, res) => {
     }
 }
 
+const getMe = async (req, res) => {
+    const { student_id } = req.query;
+    if(!student_id){
+        return res.status(404).json({message: "Student id is required!"});
+    }
+    const studentInfo = await prisma.students.findUnique({
+        where: {
+            id: student_id
+        }
+    });
+
+    if(!studentInfo){
+        return res.status(400).json({
+            message: "Student not found!"
+        })
+    }
+
+    res.status(200).json({
+        status: true,
+        message: "Student retirve successfully!",
+        data: studentInfo
+    });
+}
+
 export const iStudentController = {
     getStudentAvaiability,
     getAllStudent,
     deleteStudent,
     createStudent,
     uploadStudentFiles,
-    updatePlacement
+    updatePlacement,
+    getMe
 }

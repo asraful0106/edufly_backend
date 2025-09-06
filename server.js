@@ -17,6 +17,7 @@ import iTeacherResult from "./routes/i_teacher_results.routes.js";
 import cookieParser from 'cookie-parser';
 import authRouter from "./routes/auth.router.js";
 import iTeacherProfileRoute from "./routes/i_teacher_profile.router.js";
+import iStudentProfileRouter from "./routes/i_student_profile.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 3010;
@@ -51,6 +52,8 @@ app.use("/teacher", iTeacherRouter);
 app.use("/teacher-profile", iTeacherProfileRoute)
 // For handeling student
 app.use("/student", iStudentRouter);
+// For handeling student profile
+app.use("/student-profile", iStudentProfileRouter);
 // For handeling Batch
 app.use("/batch", iBatchRoute);
 // For handeling Course
