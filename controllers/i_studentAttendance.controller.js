@@ -1,6 +1,8 @@
+import prisma from "../database/db.config.js";
+
 // ---------- helpers ----------
-const SOD = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
-const EOD = d => { const x = new Date(d); x.setHours(23, 59, 59, 999); return x; };
+const SOD = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+const EOD = (d) => { const x = new Date(d); x.setHours(23, 59, 59, 999); return x; };
 const today = () => { const x = new Date(); x.setHours(0, 0, 0, 0); return x; };
 
 async function getClassCourses(class_id) {
@@ -12,32 +14,20 @@ async function getClassCourses(class_id) {
 }
 
 async function getSectionAssignedCourses(section_id, teacher_id) {
-    const scts = await prisma.sectionCourseTeachers.findMany({
-        where: { section_id, teacher_id }
-    });
+    const scts = await prisma.sectionCourseTeachers.findMany({ where: { section_id, teacher_id } });
     if (!scts.length) return [];
-    const courses = await prisma.courses.findMany({
-        where: { id: { in: scts.map(x => x.course_id) } }
-    });
+    const courses = await prisma.courses.findMany({ where: { id: { in: scts.map(x => x.course_id) } } });
     const map = Object.fromEntries(courses.map(c => [c.id, c]));
     return scts.map(sct => map[sct.course_id]).filter(Boolean);
 }
 
-// Permission:
-// - If section_id present: allowed when teacher is homeroom of section OR class
-//   OR there exists SectionCourseTeachers(section_id, course_id, teacher_id).
-// - If only class_id present: allowed when teacher is homeroom of class.
-//   Also course_id must belong to ClassCourses of that class.
+// Permission rules
 async function assertPermission({ class_id, section_id, course_id, teacher_id }) {
     if (!teacher_id) throw Object.assign(new Error("teacher_id required"), { code: 400 });
 
     if (section_id) {
-        const sec = await prisma.sections.findUnique({
-            where: { id: section_id },
-            include: { class: true }
-        });
+        const sec = await prisma.sections.findUnique({ where: { id: section_id }, include: { class: true } });
         if (!sec) throw Object.assign(new Error("Section not found"), { code: 404 });
-        // must provide a course
         if (!course_id) throw Object.assign(new Error("course_id is required for section scope"), { code: 400 });
 
         const isHomeroom =
@@ -45,30 +35,20 @@ async function assertPermission({ class_id, section_id, course_id, teacher_id })
             (sec.class && sec.class.homeroom_teacher_id === teacher_id);
 
         if (isHomeroom) {
-            // verify course belongs to the class via ClassCourses
-            const allowed = await prisma.classCourses.findFirst({
-                where: { class_id: sec.class_id, course_id }
-            });
+            const allowed = await prisma.classCourses.findFirst({ where: { class_id: sec.class_id, course_id } });
             if (!allowed) throw Object.assign(new Error("Course not in this class"), { code: 403 });
             return { class_id: sec.class_id, section_id: sec.id, course_id };
         }
-
-        const assigned = await prisma.sectionCourseTeachers.findFirst({
-            where: { section_id, course_id, teacher_id }
-        });
-        if (!assigned) {
-            throw Object.assign(new Error("Forbidden: not homeroom or course teacher for this section/course"), { code: 403 });
-        }
-        // All good
+        const assigned = await prisma.sectionCourseTeachers.findFirst({ where: { section_id, course_id, teacher_id } });
+        if (!assigned) throw Object.assign(new Error("Forbidden: not homeroom or course teacher for this section/course"), { code: 403 });
         return { class_id: sec.class_id, section_id: sec.id, course_id };
     }
 
     if (class_id) {
         const cls = await prisma.classes.findUnique({ where: { id: class_id } });
         if (!cls) throw Object.assign(new Error("Class not found"), { code: 404 });
-        if (cls.homeroom_teacher_id !== teacher_id) {
+        if (cls.homeroom_teacher_id !== teacher_id)
             throw Object.assign(new Error("Forbidden: not homeroom teacher for this class"), { code: 403 });
-        }
         if (!course_id) throw Object.assign(new Error("course_id is required for class scope"), { code: 400 });
         const inClass = await prisma.classCourses.findFirst({ where: { class_id, course_id } });
         if (!inClass) throw Object.assign(new Error("Course not in this class"), { code: 403 });
@@ -78,8 +58,6 @@ async function assertPermission({ class_id, section_id, course_id, teacher_id })
     throw Object.assign(new Error("Provide class_id or section_id"), { code: 400 });
 }
 
-
-
 // ---------- lookups for a teacher ----------
 const getLookup = async (req, res) => {
     try {
@@ -87,19 +65,16 @@ const getLookup = async (req, res) => {
         if (!institution_id || !teacher_id)
             return res.status(400).json({ message: "institution_id and teacher_id required" });
 
-        // classes where teacher is homeroom
         const classes = await prisma.classes.findMany({
             where: { institution_id, homeroom_teacher_id: teacher_id },
             select: { id: true, title: true, batch_code: true }
         });
 
-        // sections where teacher is homeroom
         const sectionsHome = await prisma.sections.findMany({
             where: { homeroom_teacher_id: teacher_id },
             select: { id: true, section_name: true, class_id: true }
         });
 
-        // sections where teacher is assigned to at least one course
         const scts = await prisma.sectionCourseTeachers.findMany({
             where: { teacher_id },
             select: { section_id: true, course_id: true }
@@ -112,7 +87,6 @@ const getLookup = async (req, res) => {
             })
             : [];
 
-        // attach courses to classes (ClassCourses)
         const cc = await prisma.classCourses.findMany({
             where: { class_id: { in: classes.map(c => c.id).concat(sectionsHome.map(s => s.class_id), sectionsAssigned.map(s => s.class_id)) } }
         });
@@ -124,8 +98,6 @@ const getLookup = async (req, res) => {
             (acc[x.class_id] ||= []).push(courseMap[x.course_id]);
             return acc;
         }, {});
-
-        // for assigned sections -> map assigned courses per section for this teacher
         const assignedCoursesBySection = scts.reduce((acc, x) => {
             (acc[x.section_id] ||= []).push(courseMap[x.course_id]);
             return acc;
@@ -142,7 +114,7 @@ const getLookup = async (req, res) => {
     } catch (e) {
         res.status(500).json({ message: e.message });
     }
-}
+};
 
 // ---------- helper: available courses for a scope ----------
 const getAvailableCourse = async (req, res) => {
@@ -179,17 +151,21 @@ const getAvailableCourse = async (req, res) => {
     } catch (e) {
         res.status(500).json({ message: e.message });
     }
-}
+};
 
 // ---------- roster ----------
-const getRoster = async(req, res) => {
+const getRoster = async (req, res) => {
     try {
         const { institution_id, teacher_id, date, class_id, section_id, course_id } = req.query;
-        if (!institution_id || !teacher_id || !date) return res.status(400).json({ message: "institution_id, teacher_id, date required" });
+        if (!institution_id || !teacher_id || !date)
+            return res.status(400).json({ message: "institution_id, teacher_id, date required" });
 
         const d = new Date(date);
         if (isNaN(d)) return res.status(400).json({ message: "Invalid date" });
-        if (d > today()) return res.status(400).json({ message: "Cannot take attendance for a future date" });
+
+        // ✅ FIX: compare by local start-of-day to avoid timezone issue
+        if (SOD(d) > today())
+            return res.status(400).json({ message: "Cannot take attendance for a future date" });
 
         const scope = await assertPermission({ class_id, section_id, course_id, teacher_id });
 
@@ -224,17 +200,24 @@ const getRoster = async(req, res) => {
     } catch (e) {
         res.status(e.code || 500).json({ message: e.message });
     }
-}
+};
 
 // ---------- save / upsert ----------
 const save = async (req, res) => {
     try {
         const { institution_id, teacher_id, date, class_id, section_id, course_id, items } = req.body;
-        if (!institution_id || !teacher_id || !date) return res.status(400).json({ message: "institution_id, teacher_id, date required" });
+        if (!institution_id || !teacher_id || !date)
+            return res.status(400).json({ message: "institution_id, teacher_id, date required" });
+
         const d = new Date(date);
         if (isNaN(d)) return res.status(400).json({ message: "Invalid date" });
-        if (d > today()) return res.status(400).json({ message: "Cannot take attendance for a future date" });
-        if (!Array.isArray(items) || !items.length) return res.status(400).json({ message: "items[] required" });
+
+        // ✅ FIX: compare by local start-of-day to avoid timezone issue
+        if (SOD(d) > today())
+            return res.status(400).json({ message: "Cannot take attendance for a future date" });
+
+        if (!Array.isArray(items) || !items.length)
+            return res.status(400).json({ message: "items[] required" });
 
         const scope = await assertPermission({ class_id, section_id, course_id, teacher_id });
 
@@ -278,7 +261,7 @@ const save = async (req, res) => {
     } catch (e) {
         res.status(e.code || 500).json({ message: e.message });
     }
-}
+};
 
 // ---------- analytics ----------
 const analytics = async (req, res) => {
@@ -287,25 +270,17 @@ const analytics = async (req, res) => {
         if (!institution_id || !teacher_id || !from || !to)
             return res.status(400).json({ message: "institution_id, teacher_id, from, to required" });
 
-        // If not homeroom and section scope without course, restrict to assigned courses
-        let scope = null;
-        if (class_id || section_id) {
-            // If course not given we still allow, but filter later by allowed courses
-            scope = { class_id: class_id || null, section_id: section_id || null };
-        }
-
         const fromD = SOD(new Date(from));
         const toD = EOD(new Date(to));
         if (isNaN(fromD) || isNaN(toD)) return res.status(400).json({ message: "Invalid date range" });
         if (fromD > toD) return res.status(400).json({ message: "from must be <= to" });
         if (toD > EOD(today())) return res.status(400).json({ message: "Range cannot end in the future" });
 
-        // Build base where
         let where = {
             institution_id,
             date: { gte: fromD, lte: toD },
-            ...(scope?.class_id ? { class_id: scope.class_id } : {}),
-            ...(scope?.section_id ? { section_id: scope.section_id } : {}),
+            ...(class_id ? { class_id } : {}),
+            ...(section_id ? { section_id } : {}),
         };
 
         if (section_id) {
@@ -316,15 +291,14 @@ const analytics = async (req, res) => {
                 (sec.class && sec.class.homeroom_teacher_id === teacher_id);
 
             if (course_id) {
-                // validate scope/capability for the requested course
                 await assertPermission({ section_id, class_id: null, course_id, teacher_id });
                 where.course_id = course_id;
             } else if (!isHomeroom) {
-                // restrict to assigned courses for this teacher
                 const assigned = await getSectionAssignedCourses(section_id, teacher_id);
-                if (!assigned.length) return res.json({ status: "success", data: { counts: { present: 0, absent: 0, late: 0, leave: 0 }, total: 0, presentRate: 0, series: [] } });
+                if (!assigned.length)
+                    return res.json({ status: "success", data: { counts: { present: 0, absent: 0, late: 0, leave: 0 }, total: 0, presentRate: 0, series: [] } });
                 where.course_id = { in: assigned.map(c => c.id) };
-            } // else homeroom & no course => all class courses OK
+            }
         }
 
         if (class_id && !section_id) {
@@ -338,7 +312,6 @@ const analytics = async (req, res) => {
                 if (!ok) return res.status(403).json({ message: "Course not in this class" });
                 where.course_id = course_id;
             }
-            // else all class courses
         }
 
         const rows = await prisma.studentAttendance.findMany({ where });
@@ -363,7 +336,7 @@ const analytics = async (req, res) => {
     } catch (e) {
         res.status(e.code || 500).json({ message: e.message });
     }
-}
+};
 
 export const studentAttendanceController = {
     getLookup,
@@ -371,4 +344,4 @@ export const studentAttendanceController = {
     getRoster,
     save,
     analytics
-}
+};

@@ -1,9 +1,8 @@
+// routes/i_studentAttandance.js
 import { Router } from "express";
-import prisma from "../database/db.config.js";
-import { studentAttendanceController } from "../controllers/i_sutdent.controller.js";
+import { studentAttendanceController } from "../controllers/i_studentAttendance.controller.js";
 
 const iStudentAttandance = Router();
-
 
 // ---------- lookups for a teacher ----------
 iStudentAttandance.get("/lookups", studentAttendanceController.getLookup);
