@@ -5,7 +5,7 @@ const imageRouter = Router();
 
 // To handale the post iamge
 imageRouter.get('/:image_name', (req, res) => {
-    getImage(req, res);
+    imageController.getImage(req, res);
 });
 // To handale the teacher iamge
 imageRouter.get('/teacher/:image_name', imageController.getTeacherImage);
